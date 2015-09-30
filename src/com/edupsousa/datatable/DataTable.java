@@ -13,6 +13,7 @@ public class DataTable {
 	
 	private LinkedHashMap<String, Integer> columnsTypes = new LinkedHashMap<String, Integer>();
 	private ArrayList<DataTableRow> rows = new ArrayList<DataTableRow>();
+	private Export export;
 	
 	public int columnsCount() {
 		return columnsTypes.size();
@@ -70,26 +71,11 @@ public class DataTable {
 	}
 
 	public String export(int format) {
-		DataTableRow row;
-		String output = "";
-		if (format == DataTable.FORMAT_CSV) {
-			for (String collumnName : columnsTypes.keySet()) {
-				output += collumnName + ";";
-			}
-			output += "\n";
-			for (int i = 0; i < this.rowsCount(); i++) {
-				row = this.getRow(i);
-				for (String collumnName : columnsTypes.keySet()) {
-					if (columnsTypes.get(collumnName) == DataTable.TYPE_STRING) {
-						output += "\"" + row.getValue(collumnName) + "\";";
-					} else {
-						output += row.getValue(collumnName) + ";";
-					}
-				}
-				output += "\n";
-			}
-		}
-		return output;
+		if (format == DataTable.FORMAT_CSV) 
+			export = new ExportCSV();
+		if (format == DataTable.FORMAT_HTML)
+			export = new ExportHTML();
+		return export.export(this, columnsTypes, format);
 	}
 	
 	public void insertRowAt(DataTableRow row, int index) {
@@ -97,8 +83,37 @@ public class DataTable {
 	}
 	
 	public DataTable filterEqual(String collumn, Object value) {
-		return null;
+		DataTable dt = new DataTable();
+		for (String collumnName : columnsTypes.keySet()) {
+			dt.addCollumn(collumnName, this.getCollumnType(collumnName));
+		}
+		DataTableRow row;
+		for (int i = 0; i < this.rowsCount(); i++) {
+			row = this.getRow(i);
+			if (value == row.getValue(collumn)) {
+				dt.insertRow(row);
+			}
+		}
+		return dt;
 	}
+	
+	public DataTable filterNotEqual(String collumn, Object value) {
+		DataTable dt = new DataTable();
+		for (String collumnName : columnsTypes.keySet()) {
+			dt.addCollumn(collumnName, this.getCollumnType(collumnName));
+		}
+		DataTableRow row;
+		for (int i = 0; i < this.rowsCount(); i++) {
+			row = this.getRow(i);
+			if (value != row.getValue(collumn)) {
+				dt.insertRow(row);
+			}
+		}
+		
+		return dt;
+	}
+	
+	
 	
 	public DataTable sortAscending(String collumn) {
 		return null;
